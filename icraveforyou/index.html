@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>JNX // FEB_14_PROTOCOL</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,300;1,600&family=Space+Mono:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,300;1,600&family=Space+Mono:wght@400;700&family=VT323&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             /* DARK MODE (DEFAULT) */
@@ -14,16 +14,29 @@
             --acid: #ccff00;
             --dim: #4a4a4a;
             --card-bg: #1a1a1a;
+            --font-main: 'Space Mono', monospace;
         }
 
-        /* CUTE MODE (ACTIVATED VIA JS) */
+        /* CUTE MODE */
         body.cute-mode {
-            --bg: #ffbad0; /* Violent Pink */
+            --bg: #ffbad0;
             --text: #2a0800;
             --pink: #ff0055;
             --acid: #000000;
             --dim: #8b3a4a;
             --card-bg: #fff0f5;
+            --font-main: 'Space Mono', monospace;
+        }
+
+        /* JAZZ MODE (REAL BOOK AESTHETIC) */
+        body.jazz-mode {
+            --bg: #f4e4bc; /* Cream/Vintage Paper */
+            --text: #1a1a1a; /* Ink Black */
+            --pink: #800000; /* Deep Red (Maroon) */
+            --acid: #2c2c2c; /* Charcoal */
+            --dim: #8b7d6b;
+            --card-bg: #fdf5e6;
+            --font-main: 'Playfair Display', serif;
         }
 
         body {
@@ -36,11 +49,11 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-family: 'Space Mono', monospace;
-            transition: background 1s ease, color 0.5s ease;
+            font-family: var(--font-main);
+            transition: background 1.5s ease, color 1s ease;
         }
 
-        /* VINTAGE NOISE OVERLAY */
+        /* NOISE & TEXTURE */
         .noise {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; opacity: 0.08;
@@ -48,7 +61,7 @@
             z-index: 20;
         }
 
-        /* === START SCREEN (MOBILE AUDIO FIX) === */
+        /* === 1. START SCREEN === */
         #start-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 9999;
@@ -57,53 +70,41 @@
             cursor: pointer;
         }
         .start-btn {
-            border: 1px solid var(--acid);
-            color: var(--acid);
-            padding: 20px 40px;
-            font-family: 'Space Mono', monospace;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            border: 1px solid var(--acid); color: var(--acid); padding: 20px 40px;
+            font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 2px;
             animation: blink 1s infinite;
         }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-        /* MUSIC TOGGLE BUTTON (TOP RIGHT) */
+        /* MUSIC TOGGLE */
         #music-toggle {
             position: fixed; top: 20px; right: 20px; z-index: 100;
             font-size: 0.7rem; border: 1px solid var(--dim); padding: 5px 10px;
-            cursor: pointer; opacity: 0; transition: opacity 1s;
+            cursor: pointer; opacity: 0; transition: opacity 1s; font-family: 'Space Mono', monospace;
         }
 
-        /* MAIN CONTENT */
+        /* WRAPPER */
         #main-content {
-            opacity: 0;
-            transition: opacity 1s;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            opacity: 0; transition: opacity 1s; width: 100%;
+            display: flex; flex-direction: column; align-items: center;
         }
 
+        /* === 2. POEM LAYER (Phase 1) === */
         #poem-container {
             position: relative; width: 85%; max-width: 500px; height: 60vh;
             display: flex; flex-direction: column; justify-content: center;
             text-align: left; z-index: 10;
         }
-
-        .line {
-            opacity: 0.1; margin-bottom: 20px; transition: all 0.2s ease-out;
-            transform: translateY(20px); filter: blur(5px);
-        }
+        .line { opacity: 0.1; margin-bottom: 20px; transition: all 0.2s ease-out; transform: translateY(20px); filter: blur(5px); }
         .serif { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.8rem; color: var(--pink); line-height: 1.2; }
         .mono { font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--acid); text-transform: uppercase; letter-spacing: 2px; display: block; margin-top: 5px; }
 
+        /* === 3. CUTE LAYER (Phase 2) === */
         #cute-layer {
             display: none; width: 100%; max-width: 600px; padding: 20px;
             z-index: 15; flex-direction: column; align-items: center;
             padding-bottom: 100px; opacity: 0; animation: fadeIn 2s forwards;
         }
-        @keyframes fadeIn { to { opacity: 1; } }
-
         .cute-header {
             font-family: 'VT323', monospace; font-size: 3rem; text-align: center;
             color: var(--pink); text-shadow: 2px 2px 0px var(--text);
@@ -113,8 +114,7 @@
         .todo-item {
             background: var(--card-bg); border: 2px solid var(--text); padding: 15px;
             display: flex; align-items: center; gap: 15px; box-shadow: 5px 5px 0px var(--dim);
-            transition: transform 0.1s; cursor: pointer;
-            position: relative; overflow: hidden;
+            transition: transform 0.1s; cursor: pointer; position: relative; overflow: hidden;
         }
         .todo-item:active { transform: translate(2px, 2px); box-shadow: 3px 3px 0px var(--dim); }
         .checkbox { width: 25px; height: 25px; border: 2px solid var(--pink); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--pink); }
@@ -122,6 +122,41 @@
         .todo-item.checked { background: var(--acid); border-color: var(--pink); text-decoration: line-through; opacity: 0.7; }
         .todo-item.checked .checkbox { background: var(--pink); color: white; }
 
+        .next-btn {
+            margin-top: 40px; background: var(--pink); color: white; border: none;
+            padding: 15px 30px; font-family: 'Space Mono', monospace; font-size: 1rem;
+            cursor: pointer; box-shadow: 5px 5px 0px var(--text); transition: all 0.2s;
+        }
+        .next-btn:active { transform: translate(2px,2px); box-shadow: 3px 3px 0px var(--text); }
+
+        /* === 4. JAZZ LAYER (Phase 3 - Real Book) === */
+        #jazz-layer {
+            display: none; width: 90%; max-width: 600px; padding: 40px 20px 100px 20px;
+            z-index: 15; flex-direction: column; align-items: center; opacity: 0;
+            animation: fadeIn 2s forwards;
+        }
+        .real-book-title {
+            font-family: 'Playfair Display', serif; font-size: 2.5rem; text-align: center;
+            border-bottom: 2px solid var(--text); padding-bottom: 10px; margin-bottom: 30px;
+            font-style: italic; width: 100%;
+        }
+        .song-section { width: 100%; margin-bottom: 30px; }
+        .section-label { 
+            font-family: 'Courier Prime', monospace; font-weight: bold; 
+            border: 1px solid var(--text); display: inline-block; padding: 2px 8px; margin-bottom: 10px;
+        }
+        .lyric-block { margin-bottom: 25px; position: relative; }
+        .chords { 
+            font-family: 'Courier Prime', monospace; color: var(--pink); font-weight: bold; 
+            font-size: 0.9rem; margin-bottom: -5px; letter-spacing: -0.5px;
+        }
+        .lyrics { font-family: 'Playfair Display', serif; font-size: 1.4rem; line-height: 1.2; color: var(--text); }
+        .translation { 
+            font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--dim); 
+            font-style: italic; margin-top: 2px; 
+        }
+
+        /* UI SLIDER (Phase 1) */
         #ui-layer {
             position: fixed; bottom: 40px; width: 80%; max-width: 400px;
             display: flex; flex-direction: column; align-items: center; z-index: 30;
@@ -136,6 +171,7 @@
         .labels { width: 100%; display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 10px; color: var(--dim); }
         #date-display { font-size: 1.2rem; margin-bottom: 20px; color: var(--acid); text-shadow: 0 0 10px var(--acid); }
 
+        @keyframes fadeIn { to { opacity: 1; } }
         .glitch-active { animation: shake 0.2s infinite; }
         @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 100% { transform: translate(-1px, -2px) rotate(-1deg); } }
         #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 999; pointer-events: none; opacity: 0; }
@@ -158,6 +194,7 @@
     </audio>
 
     <div id="main-content">
+        
         <div id="poem-container"></div>
 
         <div id="cute-layer">
@@ -166,8 +203,23 @@
                 <span style="font-size: 0.5em; font-family: 'Space Mono'">BY: CUTE_ACCELERATIONISM</span>
             </div>
             <div class="todo-grid" id="todo-list-container"></div>
+            
+            <button class="next-btn" onclick="triggerJazzMode()">NEXT CHAPTER ➔</button>
+
             <div style="margin-top: 30px; font-size: 0.8rem; text-align: center;">
                 <p>JNX_PROTOCOL // ETERNAL_MABAR</p>
+            </div>
+        </div>
+
+        <div id="jazz-layer">
+            <div class="real-book-title">I Love You<br><span style="font-size:1rem; font-family:'Space Mono'">(For Sentimental Reasons)</span></div>
+            
+            <div id="lyrics-container">
+                </div>
+            
+            <div style="margin-top: 50px; text-align: center; font-family: 'Courier Prime'; font-size: 0.8rem; border-top: 1px solid var(--text); padding-top: 10px;">
+                Arranged by JNX for HANA<br>
+                Key: C Major // Tempo: Rubato
             </div>
         </div>
 
@@ -180,7 +232,7 @@
     </div>
 
     <script>
-        // === USER DATA ===
+        // === DATASETS ===
         const poemData = [
             { text: "sayang mari mulai tahun", sub: "2026: OUR_INITIAL_TAKEOVER", trigger: 10 },
             { text: "di mana; dijitalisasi cinta melampaui", sub: "REALITAS: KESEDERHANAAN CINTA SAPARDI", trigger: 25 },
@@ -207,21 +259,47 @@
             "Cover lagu sebanyak-banyaknya (Jadiin mixtape)",
         ];
 
+        // The Jazz Lyrics Data
+        const jazzSong = [
+            { type: "verse", label: "[Verse 1]", lines: [
+                { chord: "CM7       C7 FM7   Bb7 Bdim7      CM7 - Am7 - Dm7", lyric: "I love you... for sentimental reasons...", trans: "(aku sayang kamu, untuk alesan sentimentil)" },
+                { chord: "G7b9           CM7     Am7 – Dm7", lyric: "I hope you do believe me...", trans: "(aku ngarep kamu percaya ke aku)" },
+                { chord: "G-9          CM7 – Am7 – Dm7 – Db7b5", lyric: "I've given you my heart...", trans: "(aku téh udah ngasiin hati aku)" },
+                { chord: "CM7     C7 - F      Bb7 Bdim7       CM7         Am7 - Dm7", lyric: "I love you... and you alone were meant for me...", trans: "(aku sayang kamu, dan kamu doang buat aku)" },
+                { chord: "G7b9              CM7     Am7 – Dm7", lyric: "Please give your loving heart to me...", trans: "(tolong kasihin hati sayangmu ke aku)" },
+                { chord: "G7b9             CM7 – FM9 – CM7 - Gm7 – F#7", lyric: "And say we'll never part...", trans: "(terus bilang kita gabakal pisah)" }
+            ]},
+            { type: "bridge", label: "[Bridge]", lines: [
+                { chord: "FM7          F#dim - B7  Em7 – A9", lyric: "I think of you every... morning", trans: "(aku mikirn kamu tiap pagi)" },
+                { chord: "Dm7           G7+5   CM7 – C6", lyric: "Dream of you every night", trans: "(mimpiin kamu tiap malem)" },
+                { chord: "Bm7b5       E7+9    Am7", lyric: "Darling I'm never lonely", trans: "(sayangku, aku gaperna kesepian)" },
+                { chord: "D7sus4        D7                 Dm7 – Db7b5", lyric: "When --- ever you're... in... sight", trans: "(setiap kamu keliatan)" }
+            ]},
+            { type: "verse", label: "[Verse 2]", lines: [
+                { chord: "CM7       C7 FM7   Bb7 Bdim7      CM7 - Am7 - Dm7", lyric: "I love you... for sentimental reasons...", trans: "(aku sayang kamu, untuk alesan sentimentil)" },
+                { chord: "G7b9           CM7     Am7 – Dm7", lyric: "I hope you do believe me...", trans: "(aku ngarep kamu percaya ke aku)" },
+                { chord: "G-9          CM7 – Am7 – Dm7 – Db7b5", lyric: "I've given you my heart...", trans: "(aku téh udah ngasiin hati aku)" }
+            ]}
+        ];
+
         // === DOM ELEMENTS ===
         const container = document.getElementById('poem-container');
         const slider = document.getElementById('time-slider');
         const dateDisplay = document.getElementById('date-display');
         const uiLayer = document.getElementById('ui-layer');
         const cuteLayer = document.getElementById('cute-layer');
+        const jazzLayer = document.getElementById('jazz-layer');
         const todoContainer = document.getElementById('todo-list-container');
+        const lyricsContainer = document.getElementById('lyrics-container');
         const body = document.body;
         const bgm = document.getElementById('bgm'); 
         const musicToggle = document.getElementById('music-toggle');
         const startScreen = document.getElementById('start-screen');
         const mainContent = document.getElementById('main-content');
+        const flash = document.getElementById('flash');
 
-        // === INITIALIZATION ===
-        // 1. Render Poem
+        // === INIT ===
+        // Render Poem
         poemData.forEach((item, index) => {
             const div = document.createElement('div');
             div.classList.add('line');
@@ -230,33 +308,25 @@
             container.appendChild(div);
         });
 
-        // 2. State Variables
         let mode = 'dark';
         let musicStarted = false;
 
-        // === FUNCTIONS ===
-
-        // A. Start Experience (The big button)
+        // === START EXPERIENCE ===
         function startExperience() {
-            // Try to play audio
             bgm.volume = 0.5;
             bgm.play().then(() => {
                 musicStarted = true;
                 updateMusicLabel();
-            }).catch(e => {
-                console.log("Audio failed (Silent mode?)", e);
-            });
+            }).catch(e => console.log("Audio waiting"));
 
-            // Fade out start screen
             startScreen.style.opacity = 0;
-            musicToggle.style.opacity = 1; // Show toggle button
+            musicToggle.style.opacity = 1;
             setTimeout(() => {
                 startScreen.style.display = 'none';
                 mainContent.style.opacity = 1;
             }, 800);
         }
 
-        // B. Toggle Music (The small button)
         function toggleMusic() {
             if (bgm.paused) {
                 bgm.play();
@@ -271,32 +341,19 @@
         function updateMusicLabel() {
             if (musicStarted && !bgm.paused) {
                 musicToggle.innerText = "[ MUSIC: ON 🎵 ]";
-                musicToggle.style.color = "var(--acid)";
-                musicToggle.style.borderColor = "var(--acid)";
             } else {
                 musicToggle.innerText = "[ MUSIC: OFF 🔇 ]";
-                musicToggle.style.color = "var(--dim)";
-                musicToggle.style.borderColor = "var(--dim)";
             }
         }
 
-        // C. Slider Interaction
+        // === PHASE 1: DARK SLIDER ===
         slider.addEventListener('input', (e) => {
             const val = parseInt(e.target.value);
-            
-            // Trigger Cute Mode at 100
-            if (val === 100 && mode === 'dark') {
-                triggerCuteMode();
-            }
-
-            // Update visuals based on slider
-            if (mode === 'dark') {
-                updatePoemDisplay(val);
-            }
+            if (val === 100 && mode === 'dark') triggerCuteMode();
+            if (mode === 'dark') updatePoemDisplay(val);
         });
 
         function updatePoemDisplay(val) {
-            // Update Date
             if(val < 100) {
                 const daysAdded = Math.floor((val / 100) * 45); 
                 const date = new Date(2025, 0, 1);
@@ -305,12 +362,10 @@
                 body.classList.remove('glitch-active');
             }
 
-            // Update Background Darkness
             const darkness = Math.floor(val / 10);
             if(val < 90) body.style.backgroundColor = `rgb(${8 + darkness}, ${8}, ${8 + darkness})`;
             else body.style.backgroundColor = "#1a050a";
 
-            // Reveal Poem Lines
             poemData.forEach((item, index) => {
                 const el = document.getElementById(`line-${index}`);
                 if (val >= item.trigger) {
@@ -327,46 +382,33 @@
             });
         }
 
-        // D. Trigger Cute Mode (The Transition)
+        // === TRANSITION TO PHASE 2: CUTE ===
         function triggerCuteMode() {
             mode = 'cute';
-            
-            // Boost volume
             if(musicStarted) bgm.volume = 1.0;
-
-            const flash = document.getElementById('flash');
+            
             flash.style.opacity = 1;
             flash.style.transition = "opacity 0.2s";
             
             setTimeout(() => {
                 body.classList.add('cute-mode');
                 body.classList.remove('glitch-active');
-                
-                // Hide Poem & Slider
                 container.style.display = 'none';
                 uiLayer.style.display = 'none';
-                
-                // Show Cute Layer
                 cuteLayer.style.display = 'flex';
                 renderTodos();
-                
                 flash.style.opacity = 0;
             }, 200);
         }
 
-        // E. Render To-Do List
         function renderTodos() {
             todoContainer.innerHTML = '';
             cuteTodos.forEach((text, i) => {
                 const item = document.createElement('div');
                 item.classList.add('todo-item');
-                // Staggered animation
                 item.style.animation = `fadeIn 0.5s forwards ${i * 0.1}s`;
                 item.style.opacity = 0; 
-                
                 item.innerHTML = `<div class="checkbox"></div><div class="todo-text">${text}</div>`;
-                
-                // Click interaction
                 item.onclick = () => {
                     item.classList.toggle('checked');
                     if(item.classList.contains('checked')) {
@@ -380,7 +422,54 @@
             });
         }
 
-        // F. Confetti Effect
+        // === TRANSITION TO PHASE 3: JAZZ (REAL BOOK) ===
+        function triggerJazzMode() {
+            mode = 'jazz';
+            
+            // Soft Transition
+            cuteLayer.style.animation = "fadeIn 0.5s reverse forwards";
+            
+            setTimeout(() => {
+                cuteLayer.style.display = 'none';
+                body.classList.remove('cute-mode');
+                body.classList.add('jazz-mode'); // Cream background
+                jazzLayer.style.display = 'flex';
+                renderLyrics();
+                
+                // Scroll to top
+                window.scrollTo(0,0);
+            }, 500);
+        }
+
+        function renderLyrics() {
+            lyricsContainer.innerHTML = '';
+            jazzSong.forEach(section => {
+                const secDiv = document.createElement('div');
+                secDiv.classList.add('song-section');
+                
+                // Section Label (Verse/Bridge)
+                const label = document.createElement('div');
+                label.classList.add('section-label');
+                label.innerText = section.label;
+                secDiv.appendChild(label);
+
+                section.lines.forEach(line => {
+                    const block = document.createElement('div');
+                    block.classList.add('lyric-block');
+                    
+                    // Replace spaces in chords with non-breaking spaces for alignment (rough fix)
+                    // or just let monospace handle it.
+                    block.innerHTML = `
+                        <div class="chords">${line.chord}</div>
+                        <div class="lyrics">${line.lyric}</div>
+                        <div class="translation">${line.trans}</div>
+                    `;
+                    secDiv.appendChild(block);
+                });
+                lyricsContainer.appendChild(secDiv);
+            });
+        }
+
         function spawnConfetti(element) {
             const rect = element.getBoundingClientRect();
             for(let i=0; i<10; i++) {
