@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,300;1,600&family=Space+Mono:wght@400;700&family=VT323&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* DARK MODE */
+            /* DARK MODE (DEFAULT) */
             --bg: #080808;
             --text: #e0e0e0;
             --pink: #ff8fab;
@@ -16,8 +16,9 @@
             --card-bg: #1a1a1a;
         }
 
+        /* CUTE MODE (ACTIVATED VIA JS) */
         body.cute-mode {
-            --bg: #ffbad0;
+            --bg: #ffbad0; /* Violent Pink */
             --text: #2a0800;
             --pink: #ff0055;
             --acid: #000000;
@@ -39,6 +40,7 @@
             transition: background 1s ease, color 0.5s ease;
         }
 
+        /* VINTAGE NOISE OVERLAY */
         .noise {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; opacity: 0.08;
@@ -46,7 +48,7 @@
             z-index: 20;
         }
 
-        /* === START SCREEN (THE FIX) === */
+        /* === START SCREEN (MOBILE AUDIO FIX) === */
         #start-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 9999;
@@ -64,6 +66,13 @@
             animation: blink 1s infinite;
         }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* MUSIC TOGGLE BUTTON (TOP RIGHT) */
+        #music-toggle {
+            position: fixed; top: 20px; right: 20px; z-index: 100;
+            font-size: 0.7rem; border: 1px solid var(--dim); padding: 5px 10px;
+            cursor: pointer; opacity: 0; transition: opacity 1s;
+        }
 
         /* MAIN CONTENT */
         #main-content {
@@ -105,6 +114,7 @@
             background: var(--card-bg); border: 2px solid var(--text); padding: 15px;
             display: flex; align-items: center; gap: 15px; box-shadow: 5px 5px 0px var(--dim);
             transition: transform 0.1s; cursor: pointer;
+            position: relative; overflow: hidden;
         }
         .todo-item:active { transform: translate(2px, 2px); box-shadow: 3px 3px 0px var(--dim); }
         .checkbox { width: 25px; height: 25px; border: 2px solid var(--pink); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--pink); }
@@ -126,6 +136,8 @@
         .labels { width: 100%; display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 10px; color: var(--dim); }
         #date-display { font-size: 1.2rem; margin-bottom: 20px; color: var(--acid); text-shadow: 0 0 10px var(--acid); }
 
+        .glitch-active { animation: shake 0.2s infinite; }
+        @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 100% { transform: translate(-1px, -2px) rotate(-1deg); } }
         #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 999; pointer-events: none; opacity: 0; }
     </style>
 </head>
@@ -133,8 +145,10 @@
 
     <div id="start-screen" onclick="startExperience()">
         <div class="start-btn">[ INITIALIZE SYSTEM ]</div>
-        <div style="margin-top: 10px; font-size: 0.7rem; color: #666;">(Turn off Silent Mode)</div>
+        <div style="margin-top: 15px; font-size: 0.7rem; color: #666;">(Tap to Connect & Play Audio)</div>
     </div>
+
+    <div id="music-toggle" onclick="toggleMusic()">[ MUSIC: OFF ]</div>
 
     <div class="noise"></div>
     <div id="flash"></div>
@@ -166,4 +180,226 @@
     </div>
 
     <script>
-        // === START EXPERIENCE FUNCTION ===
+        // === USER DATA ===
+        const poemData = [
+            { text: "sayang mari mulai tahun", sub: "2026: OUR_INITIAL_TAKEOVER", trigger: 10 },
+            { text: "di mana; dijitalisasi cinta melampaui", sub: "REALITAS: KESEDERHANAAN CINTA SAPARDI", trigger: 25 },
+            { text: "dan aku, yang menunggu,", sub: "TARGET_LOCKED: ISTRIKU", trigger: 40 },
+            { text: "menemukan bahwa mencintaimu", sub: "PERLU MENJADI AKU'", trigger: 55 },
+            { text: "sekarang aku menghitung detik-detik", sub: "YANG TERASA SEPERTI SELAMANYA", trigger: 70 },
+            { text: "menuju februari,", sub: "YANG KITA UPAYAKAN", trigger: 85 },
+            { text: "dimana kita menjadi satu.", sub: "LAGI", trigger: 95 }
+        ];
+
+        const cuteTodos = [
+            "Speedrun ke KUA (Legalize This Cuteness)",
+            "Ngealbum atau Ngejukebox bareng (Sambil Cuddle)",
+            "Gothic GF Transformation Arc (Cosplay jadi kita yang dulu)",
+            "Brewing Tea & Spilling Tea (Every Morning)",
+            "Avocado Hunting (Texture Check: 100%)",
+            "Just aggressive cuddling.",
+            "Painting or Drawing date",
+            "Go to Library atau Cafe buku, kita write cute shit",
+            "Jengsky Private Concert (Exclusive 4 U)",
+            "Be Cringey Together Forever (Non-Negotiable)",
+            "Adu kuat minum",
+            "Ke Villa di atas, cosplay jadi pasutri",
+            "Cover lagu sebanyak-banyaknya (Jadiin mixtape)",
+        ];
+
+        // === DOM ELEMENTS ===
+        const container = document.getElementById('poem-container');
+        const slider = document.getElementById('time-slider');
+        const dateDisplay = document.getElementById('date-display');
+        const uiLayer = document.getElementById('ui-layer');
+        const cuteLayer = document.getElementById('cute-layer');
+        const todoContainer = document.getElementById('todo-list-container');
+        const body = document.body;
+        const bgm = document.getElementById('bgm'); 
+        const musicToggle = document.getElementById('music-toggle');
+        const startScreen = document.getElementById('start-screen');
+        const mainContent = document.getElementById('main-content');
+
+        // === INITIALIZATION ===
+        // 1. Render Poem
+        poemData.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.classList.add('line');
+            div.id = `line-${index}`;
+            div.innerHTML = `<span class="serif">${item.text}</span><span class="mono">${item.sub}</span>`;
+            container.appendChild(div);
+        });
+
+        // 2. State Variables
+        let mode = 'dark';
+        let musicStarted = false;
+
+        // === FUNCTIONS ===
+
+        // A. Start Experience (The big button)
+        function startExperience() {
+            // Try to play audio
+            bgm.volume = 0.5;
+            bgm.play().then(() => {
+                musicStarted = true;
+                updateMusicLabel();
+            }).catch(e => {
+                console.log("Audio failed (Silent mode?)", e);
+            });
+
+            // Fade out start screen
+            startScreen.style.opacity = 0;
+            musicToggle.style.opacity = 1; // Show toggle button
+            setTimeout(() => {
+                startScreen.style.display = 'none';
+                mainContent.style.opacity = 1;
+            }, 800);
+        }
+
+        // B. Toggle Music (The small button)
+        function toggleMusic() {
+            if (bgm.paused) {
+                bgm.play();
+                musicStarted = true;
+            } else {
+                bgm.pause();
+                musicStarted = false;
+            }
+            updateMusicLabel();
+        }
+
+        function updateMusicLabel() {
+            if (musicStarted && !bgm.paused) {
+                musicToggle.innerText = "[ MUSIC: ON 🎵 ]";
+                musicToggle.style.color = "var(--acid)";
+                musicToggle.style.borderColor = "var(--acid)";
+            } else {
+                musicToggle.innerText = "[ MUSIC: OFF 🔇 ]";
+                musicToggle.style.color = "var(--dim)";
+                musicToggle.style.borderColor = "var(--dim)";
+            }
+        }
+
+        // C. Slider Interaction
+        slider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            
+            // Trigger Cute Mode at 100
+            if (val === 100 && mode === 'dark') {
+                triggerCuteMode();
+            }
+
+            // Update visuals based on slider
+            if (mode === 'dark') {
+                updatePoemDisplay(val);
+            }
+        });
+
+        function updatePoemDisplay(val) {
+            // Update Date
+            if(val < 100) {
+                const daysAdded = Math.floor((val / 100) * 45); 
+                const date = new Date(2025, 0, 1);
+                date.setDate(date.getDate() + daysAdded);
+                dateDisplay.innerText = "CURRENT: " + date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
+                body.classList.remove('glitch-active');
+            }
+
+            // Update Background Darkness
+            const darkness = Math.floor(val / 10);
+            if(val < 90) body.style.backgroundColor = `rgb(${8 + darkness}, ${8}, ${8 + darkness})`;
+            else body.style.backgroundColor = "#1a050a";
+
+            // Reveal Poem Lines
+            poemData.forEach((item, index) => {
+                const el = document.getElementById(`line-${index}`);
+                if (val >= item.trigger) {
+                    el.style.opacity = 1;
+                    el.style.transform = "translateY(0px)";
+                    el.style.filter = "blur(0px)";
+                    if(val > 80) el.querySelector('.serif').style.textShadow = "0 0 10px var(--pink)";
+                } else {
+                    el.style.opacity = 0.1;
+                    el.style.transform = "translateY(20px)";
+                    el.style.filter = "blur(5px)";
+                    el.querySelector('.serif').style.textShadow = "none";
+                }
+            });
+        }
+
+        // D. Trigger Cute Mode (The Transition)
+        function triggerCuteMode() {
+            mode = 'cute';
+            
+            // Boost volume
+            if(musicStarted) bgm.volume = 1.0;
+
+            const flash = document.getElementById('flash');
+            flash.style.opacity = 1;
+            flash.style.transition = "opacity 0.2s";
+            
+            setTimeout(() => {
+                body.classList.add('cute-mode');
+                body.classList.remove('glitch-active');
+                
+                // Hide Poem & Slider
+                container.style.display = 'none';
+                uiLayer.style.display = 'none';
+                
+                // Show Cute Layer
+                cuteLayer.style.display = 'flex';
+                renderTodos();
+                
+                flash.style.opacity = 0;
+            }, 200);
+        }
+
+        // E. Render To-Do List
+        function renderTodos() {
+            todoContainer.innerHTML = '';
+            cuteTodos.forEach((text, i) => {
+                const item = document.createElement('div');
+                item.classList.add('todo-item');
+                // Staggered animation
+                item.style.animation = `fadeIn 0.5s forwards ${i * 0.1}s`;
+                item.style.opacity = 0; 
+                
+                item.innerHTML = `<div class="checkbox"></div><div class="todo-text">${text}</div>`;
+                
+                // Click interaction
+                item.onclick = () => {
+                    item.classList.toggle('checked');
+                    if(item.classList.contains('checked')) {
+                        item.querySelector('.checkbox').innerText = "✓";
+                        spawnConfetti(item);
+                    } else {
+                        item.querySelector('.checkbox').innerText = "";
+                    }
+                };
+                todoContainer.appendChild(item);
+            });
+        }
+
+        // F. Confetti Effect
+        function spawnConfetti(element) {
+            const rect = element.getBoundingClientRect();
+            for(let i=0; i<10; i++) {
+                const particle = document.createElement('div');
+                particle.innerText = ["❤️", "🥑", "✨", "🔥", "👻"][Math.floor(Math.random()*5)];
+                particle.style.position = 'fixed';
+                particle.style.left = (rect.left + Math.random() * rect.width) + 'px';
+                particle.style.top = (rect.top + rect.height/2) + 'px';
+                particle.style.fontSize = '1.5rem';
+                particle.style.pointerEvents = 'none';
+                particle.style.transition = "all 1s ease-out";
+                document.body.appendChild(particle);
+                setTimeout(() => {
+                    particle.style.transform = `translate(${Math.random()*100 - 50}px, -100px) rotate(${Math.random()*360}deg)`;
+                    particle.style.opacity = 0;
+                }, 10);
+                setTimeout(() => particle.remove(), 1000);
+            }
+        }
+    </script>
+</body>
+</html>
